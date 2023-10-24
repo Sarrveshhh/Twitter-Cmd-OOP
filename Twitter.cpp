@@ -5,7 +5,7 @@
 //for data type time_t.
 #include<ctime>
 
-//user defined preprocessor directives
+//user defined oheader file
 #include "HeaderFile/fileHandling.h"
 using namespace std;
 
