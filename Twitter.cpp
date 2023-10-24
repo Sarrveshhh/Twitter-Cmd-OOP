@@ -2,7 +2,43 @@
 #include<iostream>
 #include<fstream>
 #include<string>
+//for data type time_t.
+#include<ctime>
+
+//user defined preprocessor directives
+#include "HeaderFile/fileHandling.h"
 using namespace std;
+
+class Tweet{
+    private:
+    string content;
+    string author;
+    time_t timestamp;
+
+    public:
+    Tweet(string content, string user){
+        this->content = content;
+        this->author = user;  
+        this->timestamp = time(nullptr);
+    }
+
+
+
+    //getter for tweet properties;
+    string getContent(){
+        return this->content;
+    }
+
+    string getAuthor(){
+        return this->author;
+    }
+
+    time_t getTimestamp(){
+        return this->timestamp;
+    }
+
+
+};
 
 class User{
     private:
@@ -19,75 +55,72 @@ class User{
         followingCount = 0;
     };
 
-    //login logic
-    void login(){
-        //reading each line of file to check if username and password exists.
+    void changePassword(){
+        string username = this->username;
+        string p;
+        cout << "Enter new password" << endl;
+        cin >> p;
+        this->password = p;
+        int flag = 0;
         fstream file;
+        std::string line;
+        string searchString = this->username;
         file.open("userLogin.txt", ios::in);
         if(file.is_open()){
-            string line;
-            bool userFound = false;
-            while(getline(file, line)){
+            while (getline(file, line)) {
+            size_t spacePos = line.find(' ');
+            string u = line.substr(0, spacePos);
+            // string p = line.substr(spacePos+1);
+            // cout << u << endl;
+        if (u == searchString) {
+            cout << "string found!" << endl;
+            file << u + ' ' + p << endl;
+            flag = 1;
+        }
+    }
+        if(flag != 1)
+            cout << "String not found!" << endl;
+        }
 
-                //splitting the line into username and password.
-                size_t spacePos = line.find(' ');
-                string u = line.substr(0, spacePos);
-                string p = line.substr(spacePos+1);
+        file.close();
+    file.open("userLogin.txt", ios::app);
 
-                if(u == this->username && p == this->password){
-                    cout << "Login of " << this->username << " is successful!" << endl;
-                    userFound = true;
-                    break;
-                }
-            }
-            //if could not find user.
-            if(!userFound){
-                cout << "Username not found! Check credentials and try again!" << endl;
-            }
+    if(file.is_open()){
+        file << this->username + " "+ p << endl;
 
-            file.close();
+    }
+
+        else{
+            cout << "Please try again!" << endl;
+        }
+
+    }
+    void login(){
+        //function written in fileHandling.cpp
+        bool ans = checkCredentials(this->username, this->password);
+        if(ans){
+            cout << "You have successfully signed in! You can now Tweet" << endl;
         }
         else{
-            cout << "File did not open!. Try again!" << endl;
+            cout << "Login fail, please check credentials!" << endl;
         }
     }
 
     void signup(){
-        //checking if username already exits.
-        fstream file;
-        string line;
-        bool userStored = false;
-        bool userAlreadyExist = false;
-        file.open("userLogin.txt", ios::in);
-        if(file.is_open()){
-            while(getline(file, line)){
-                size_t spacePos = line.find(' ');
-                string u = line.substr(0, spacePos);
-                if(u == this->username){
-                    cout << "Username already exits, please try different username!" << endl;
-                    userAlreadyExist = true;
-                    break;
-                }
-            }
-            file.close();
+        //checking if username already exists.
+        bool userExisits = alreadyExisits(this->username);
+        if(userExisits){
+            cout << "Username already taken! Please try another username." << endl;
         }
         else{
-            cout << "File could not open, Try again!" << endl;
-        }
-        //appending usrname and password in file.
-        if(!userAlreadyExist){
-            file.open("userLogin.txt", ios::app);
-            if(file.is_open()){
-                file << this->username << " " << this->password << endl;
-                userStored = true;
+            // append username and password in file.
+            bool addedUser = appendCredentials(this->username, this->password);
+            if(addedUser){
+                cout << "Your signup is successfull, You can now Login!" << endl;
             }
             else{
-                cout << "File could not open, Try again!" << endl;
+                cout << "Error in creating account, try again later!" << endl;
             }
-        }
-
-        if(userStored){
-            cout << "You have completed your registration! You can now login! Thank You!!" << endl;
         }
     }
 };
@@ -98,7 +131,7 @@ int main(){
         cout << "***********HOME PAGE***********" << endl;
         cout << "1. Login" << endl;
         cout << "2. Signup" << endl;
-        cout << "4. Exit App" << endl;
+        cout << "3. Exit App" << endl;
         int choice;
         cout << "Enter your choice: ";
         cin >> choice;
@@ -129,9 +162,10 @@ int main(){
             break;
         }
         case 3:
+        {
             isRunning = false;
             break;
-
+        }
         default:
             cout << "Invalid choice. Please try again!" << endl;
             break;
